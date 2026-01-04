@@ -20,3 +20,13 @@ def root():
 def health_check():
     print("Health check called")
     return {"status": "ok"}
+
+@app.post("/analyze")
+def analyze(data: dict):
+    user_input = data.get("text", "")
+
+    return {
+        "original": user_input,
+        "length": len(user_input),
+        "message": "Text received successfully"
+    }

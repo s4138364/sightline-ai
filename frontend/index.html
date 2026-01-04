@@ -1,23 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="UTF-8">
         <title>Sightline AI</title>
     </head>
     <body>
-        <h1>Sightline AI Dashboard</h1>
-        <p id="status">Loading...</p>
+        <h1>Sightline AI</h1>
+        
+        <input id="userInput" type="text" placeholder="Type something..." />
+        <button id="sendBtn">Analyze</button>
+
+        <pre id="output">Waiting for input...</pre>
 
         <script>
-            fetch("http://127.0.0.1:8000/health")
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("status").innerText =
-                        "Backend status: " + data.status;
-                })
-                .catch(error => {
-                    document.getElementById("status").innerText =
-                        "Error connecting to backend";
+            const button = document.getElementById('sendBtn');
+            const input = document.getElementById('userInput');
+            const output = document.getElementById('output');
+
+            button.addEventListener('click', async () => {
+                const text = input.value;
+
+                const response = await fetch('http://127.0.0.1:8000/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text })
                 });
+
+                const data = await response.json();
+                output.textContent = JSON.stringify(data, null, 2);
+            });
         </script>
 
     </body>
