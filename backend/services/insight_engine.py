@@ -1,18 +1,21 @@
 from typing import List
-from utils.scoring import score_tags
+from services.model_inference import run_model
 
 
 def generate_insight(tags: List[str]) -> dict:
-    score = score_tags(tags)
+    joined_tags = ", ".join(tags)
 
-    if score > 0.7:
-        insight = "Strong visual composition with clear subject separation."
-    elif score > 0.4:
-        insight = "Decent image, but composition could have been improved."
+    model_result = run_model(joined_tags)
+    confidence = model_result["confidence"]
+
+    if confidence > 0.85:
+        insight = "High confidence visual quality indicators detected."
+    elif confidence > 0.6:
+        insight = "Moderate visual quality signals present."
     else:
-        insight = "Weak visual structure. Consider reframing or simplifying."
+        insight = "Weak visual signals. Consider improving composition."
 
     return {
-        "score": score,
+        "score": confidence,
         "insight": insight
     }
