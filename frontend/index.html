@@ -1,37 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Sightline AI</title>
-    </head>
-    <body>
-        <h1>Sightline AI</h1>
-        
-        <input id="userInput" type="text" placeholder="Type something..." />
-        <button id="sendBtn">Analyze</button>
+  <head>
+    <meta charset="UTF-8">
+    <title>Sightline AI</title>
+  </head>
+  <body>
+    <h1>Sightline AI</h1>
 
-        <pre id="output">Waiting for input...</pre>
+    <input
+      id="userInput"
+      type="text"
+      placeholder="e.g. symmetry, sharp focus"
+    />
 
-        <script>
-            const button = document.getElementById('sendBtn');
-            const input = document.getElementById('userInput');
-            const output = document.getElementById('output');
+    <button id="sendBtn">Analyze</button>
 
-            button.addEventListener('click', async () => {
-                const text = input.value;
+    <pre id="output">Waiting for input...</pre>
 
-                const response = await fetch('http://127.0.0.1:8000/analyze', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ text })
-                });
+    <script>
+      const button = document.getElementById("sendBtn");
+      const input = document.getElementById("userInput");
+      const output = document.getElementById("output");
 
-                const data = await response.json();
-                output.textContent = JSON.stringify(data, null, 2);
-            });
-        </script>
+      button.addEventListener("click", async (e) => {
+        e.preventDefault();
+        console.log("Analyze clicked");
 
-    </body>
+        const text = input.value;
+        console.log("User input:", text);
+
+        // Basic guard
+        if (!text.trim()) {
+          output.textContent = "Please enter at least one tag.";
+          return;
+        }
+
+        const response = await fetch("http://127.0.0.1:8000/analyze", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            tags: text.split(",").map(tag => tag.trim())
+          })
+        });
+
+        console.log("Response status:", response.status);
+
+        const data = await response.json();
+        output.textContent = JSON.stringify(data, null, 2);
+        console.log("Response data:", data);
+      });
+    </script>
+  </body>
 </html>
