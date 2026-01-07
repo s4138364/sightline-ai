@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
@@ -31,11 +31,22 @@ async def analyze(
     tags: str = Form(...),
     image: UploadFile = File(...)
 ):
-    # Parse tags string → list
+    if not tags.strip():
+        raise HTTPException(status_code=400, detail="Tags cannot be empty")
+
+    if not image.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Uploaded file must be an image")
+
     tag_list = [t.strip() for t in tags.split(",") if t.strip()]
 
-    image_bytes = await image.read()
-    image_obj = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    if len(tag_list) == 0:
+        raise HTTPException(status_code=400, detail="No valid tags provided")
+
+    try:
+        image_bytes = await image.read()
+        image_obj = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid image file")
 
     image_score = analyze_image(image_obj)
     text_result = generate_insight(tag_list)

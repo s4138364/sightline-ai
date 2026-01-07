@@ -1,3 +1,4 @@
+import logging
 from transformers import pipeline
 
 # Load once at startup (important for performance)
@@ -7,6 +8,7 @@ classifier = pipeline(
 )
 
 def run_model(text: str) -> dict:
+    logging.info("Running text inference")
     result = classifier(text)[0]
 
     return {

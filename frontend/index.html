@@ -51,6 +51,13 @@
                     body: formData
                 });
 
+                // NEW ERROR HANDLING - Check if response is OK
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    output.textContent = "Error: " + errorData.detail;
+                    return;
+                }
+
                 const data = await response.json();
                 output.textContent = JSON.stringify(data, null, 2);
             } catch (err) {
