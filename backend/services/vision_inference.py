@@ -1,25 +1,14 @@
 import logging
-from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
-import torch
-
 
 logging.basicConfig(level=logging.INFO)
-
-model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+logger = logging.getLogger(__name__)
 
 def analyze_image(image: Image.Image) -> float:
-    logging.info("Running vision inference")
-    inputs = processor(images=image, return_tensors="pt")
+    logger.info("Running vision inference")
 
-    with torch.no_grad():
-        outputs = model.get_image_features(**inputs)
+    # Placeholder logic (Day 12+ will improve this)
+    width, height = image.size
+    score = min((width * height) / 1_000_000, 1.0)
 
-    # Normalize embedding magnitude as a proxy quality score
-    score = outputs.norm().item()
-
-    # Normalize to 0–1 range (rough heuristic)
-    normalized = min(score / 50.0, 1.0)
-
-    return normalized
+    return score

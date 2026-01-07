@@ -1,49 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Sightline AI</title>
 </head>
 <body>
     <h1>Sightline AI</h1>
 
-    <input
-        id="userInput"
-        type="text"
-        placeholder="Enter tags (comma separated)"
-    />
-
+    <input id="tagsInput" placeholder="Enter tags (comma separated)" />
+    <br><br>
+    <input id="imageInput" type="file" accept="image/*" />
     <br><br>
 
-    <input
-        id="imageInput"
-        type="file"
-        accept="image/*"
-    />
-
-    <br><br>
-
-    <button id="sendBtn">Analyze</button>
+    <button id="analyzeBtn">Analyze</button>
 
     <pre id="output">Waiting for input...</pre>
 
     <script>
-        const button = document.getElementById("sendBtn");
         const output = document.getElementById("output");
 
-        button.addEventListener("click", async () => {
-            const tagsRaw = document.getElementById("userInput").value;
-            const imageInput = document.getElementById("imageInput");
-            const imageFile = imageInput.files[0];
+        document.getElementById("analyzeBtn").onclick = async () => {
+            const tags = document.getElementById("tagsInput").value;
+            const imageFile = document.getElementById("imageInput").files[0];
 
-            if (!imageFile) {
-                output.textContent = "Please select an image.";
+            if (!tags || !imageFile) {
+                output.textContent = "Please provide tags and an image.";
                 return;
             }
 
             const formData = new FormData();
+            formData.append("tags", tags);
             formData.append("image", imageFile);
-            formData.append("tags", tagsRaw);
 
             try {
                 const response = await fetch("http://127.0.0.1:8000/analyze", {
@@ -51,19 +37,18 @@
                     body: formData
                 });
 
-                // NEW ERROR HANDLING - Check if response is OK
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    output.textContent = "Error: " + errorData.detail;
+                    const err = await response.json();
+                    output.textContent = "Error: " + err.detail;
                     return;
                 }
 
                 const data = await response.json();
                 output.textContent = JSON.stringify(data, null, 2);
             } catch (err) {
-                output.textContent = "Request failed: " + err;
+                output.textContent = "Network error";
             }
-        });
+        };
     </script>
 </body>
 </html>

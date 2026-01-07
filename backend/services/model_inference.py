@@ -1,17 +1,10 @@
 import logging
-from transformers import pipeline
 
-# Load once at startup (important for performance)
-classifier = pipeline(
-    "sentiment-analysis",
-    model="distilbert-base-uncased-finetuned-sst-2-english"
-)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def run_model(text: str) -> dict:
-    logging.info("Running text inference")
-    result = classifier(text)[0]
+def analyze_text(tags: list[str]) -> float:
+    logger.info("Running text inference")
 
-    return {
-        "label": result["label"],
-        "confidence": float(result["score"])
-    }
+    score = min(len(tags) / 5, 1.0)
+    return score

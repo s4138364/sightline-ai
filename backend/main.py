@@ -3,25 +3,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
 
-
-from models.schemas import ImageInsightRequest, ImageInsightResponse
 from services.insight_engine import generate_insight
 from services.vision_inference import analyze_image
 
 app = FastAPI()
 
+# CORS (safe for local dev)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/")
-def root():
-    return {"message": "Sightline AI backend is running"}
-    
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -38,8 +32,7 @@ async def analyze(
         raise HTTPException(status_code=400, detail="Uploaded file must be an image")
 
     tag_list = [t.strip() for t in tags.split(",") if t.strip()]
-
-    if len(tag_list) == 0:
+    if not tag_list:
         raise HTTPException(status_code=400, detail="No valid tags provided")
 
     try:
