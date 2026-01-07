@@ -5,13 +5,14 @@ import io
 
 from services.insight_engine import generate_insight
 from services.vision_inference import analyze_image
+from config import settings
 
-app = FastAPI()
+app = FastAPI(title=settings.app_name)
 
 # CORS (safe for local dev)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
