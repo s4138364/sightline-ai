@@ -17,21 +17,44 @@
 
     <script>
         const output = document.getElementById("output");
+        const tagsInput = document.getElementById("tagsInput");
+        const imageInput = document.getElementById("imageInput");
 
-        document.getElementById("analyzeBtn").onclick = async () => {
-            const tags = document.getElementById("tagsInput").value;
-            const imageFile = document.getElementById("imageInput").files[0];
+        let selectedImageFile = null;
 
-            if (!tags || !imageFile) {
-                output.textContent = "Please provide tags and an image.";
+        imageInput.addEventListener("change", () => {
+            selectedImageFile = imageInput.files[0];
+            console.log("Image stored:", selectedImageFile);
+        });
+
+        console.log("Clicked analyze button");
+        document.getElementById("analyzeBtn").addEventListener("click", async () => {
+            const tags = tagsInput.value;
+            console.log("Tags value:", tags);
+
+            if (!tags.trim()) {
+                output.textContent = "Tags are required.";
                 return;
             }
 
+            if (!selectedImageFile) {
+                console.loong("No image selected");
+                output.textContent = "Please select an image.";
+                return;
+            }
+
+            // ✅ Create FormData INSIDE click (important)
             const formData = new FormData();
             formData.append("tags", tags);
-            formData.append("image", imageFile);
+            formData.append("image", selectedImageFile, selectedImageFile.name);
+
+            // 🔍 Debug (temporary)
+            console.log("Submitting:");
+            console.log("Tags:", tags);
+            console.log("Image:", selectedImageFile.name, selectedImageFile.size);
 
             try {
+                console.log("about to fetch");
                 const response = await fetch("http://127.0.0.1:8000/analyze", {
                     method: "POST",
                     body: formData
@@ -46,9 +69,11 @@
                 const data = await response.json();
                 output.textContent = JSON.stringify(data, null, 2);
             } catch (err) {
-                output.textContent = "Network error";
+                console.error("fetch failed:", err);
+                output.textContent = "Network error.";
             }
-        };
+        });
     </script>
+
 </body>
 </html>
