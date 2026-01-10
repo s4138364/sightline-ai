@@ -1,8 +1,3 @@
-from pydantic_settings import BaseSettings
+import os
 
-class Settings(BaseSettings):
-    app_name: str = "Sightline AI"
-    debug: bool = True 
-    allowed_origins: list[str] = ["*"]
-
-settings = Settings()
+HF_MODEL_NAME = os.getenv("HF_MODEL_NAME", "google/vit-base-patch16-224")

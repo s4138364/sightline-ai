@@ -1,16 +1,8 @@
-from services.model_inference import analyze_text
+import logging
 
-def generate_insight(tags: list[str]) -> dict:
-    score = analyze_text(tags)
-
-    if score > 0.7:
-        insight = "Strong alignment between visual content and intent."
-    elif score > 0.4:
-        insight = "Moderate relevance detected."
-    else:
-        insight = "Weak or unclear relevance."
-
+def generate_insight(labels, tags):
+    logging.info("Insight engine placeholder")
     return {
-        "score": score,
-        "insight": insight
+        "labels": labels,
+        "tags": tags
     }

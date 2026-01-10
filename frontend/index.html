@@ -6,74 +6,42 @@
 <body>
     <h1>Sightline AI</h1>
 
-    <input id="tagsInput" placeholder="Enter tags (comma separated)" />
-    <br><br>
-    <input id="imageInput" type="file" accept="image/*" />
+    <input id="imageInput" type="file" />
     <br><br>
 
-    <button id="analyzeBtn">Analyze</button>
+    <input id="userInput" type="text" placeholder="cat, dog, car" />
+    <br><br>
+
+    <button id="sendBtn">Analyze</button>
 
     <pre id="output">Waiting for input...</pre>
 
     <script>
+        const button = document.getElementById("sendBtn");
         const output = document.getElementById("output");
-        const tagsInput = document.getElementById("tagsInput");
-        const imageInput = document.getElementById("imageInput");
 
-        let selectedImageFile = null;
+        button.addEventListener("click", async () => {
+            const tags = document.getElementById("userInput").value;
+            const imageInput = document.getElementById("imageInput");
 
-        imageInput.addEventListener("change", () => {
-            selectedImageFile = imageInput.files[0];
-            console.log("Image stored:", selectedImageFile);
-        });
-
-        console.log("Clicked analyze button");
-        document.getElementById("analyzeBtn").addEventListener("click", async () => {
-            const tags = tagsInput.value;
-            console.log("Tags value:", tags);
-
-            if (!tags.trim()) {
-                output.textContent = "Tags are required.";
+            if (!imageInput.files.length) {
+                alert("Please select an image");
                 return;
             }
 
-            if (!selectedImageFile) {
-                console.loong("No image selected");
-                output.textContent = "Please select an image.";
-                return;
-            }
-
-            // ✅ Create FormData INSIDE click (important)
             const formData = new FormData();
+            formData.append("image", imageInput.files[0]);
             formData.append("tags", tags);
-            formData.append("image", selectedImageFile, selectedImageFile.name);
 
-            // 🔍 Debug (temporary)
-            console.log("Submitting:");
-            console.log("Tags:", tags);
-            console.log("Image:", selectedImageFile.name, selectedImageFile.size);
+            const response = await fetch("http://127.0.0.1:8000/analyze", {
+                method: "POST",
+                body: formData
+            });
 
-            try {
-                console.log("about to fetch");
-                const response = await fetch("http://127.0.0.1:8000/analyze", {
-                    method: "POST",
-                    body: formData
-                });
+            const data = await response.json();
 
-                if (!response.ok) {
-                    const err = await response.json();
-                    output.textContent = "Error: " + err.detail;
-                    return;
-                }
-
-                const data = await response.json();
-                output.textContent = JSON.stringify(data, null, 2);
-            } catch (err) {
-                console.error("fetch failed:", err);
-                output.textContent = "Network error.";
-            }
+            output.textContent = JSON.stringify(data, null, 2);
         });
     </script>
-
 </body>
 </html>

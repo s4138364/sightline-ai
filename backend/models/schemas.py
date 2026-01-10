@@ -1,12 +1,8 @@
 from pydantic import BaseModel
 from typing import List
 
-
-
-class ImageInsightRequest(BaseModel):
-    tags: List[str]
-
-
 class ImageInsightResponse(BaseModel):
-    score: float
-    insight: str
+    score: int
+    matched_tags: List[str]
+    missing_tags: List[str]
+    detected_labels: List[str]
