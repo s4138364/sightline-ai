@@ -2,7 +2,9 @@ import logging
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 
+from services.vision_inference import run_vision_model
 from utils.scoring import score_image
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,8 +28,8 @@ async def analyze_image(
 ):
     user_tags = [t.strip() for t in tags.split(",") if t.strip()]
 
-    # TEMP deterministic labels (AI comes later)
-    detected_labels = ["cat", "animal", "pet"]
+    image_bytes = await image.read()
+    detected_labels = run_vision_model(image_bytes)
 
     result = score_image(detected_labels, user_tags)
 
