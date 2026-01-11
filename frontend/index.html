@@ -40,7 +40,15 @@
 
             const data = await response.json();
 
-            output.textContent = JSON.stringify(data, null, 2);
+            output.textContent = `
+            Score: ${data.score}
+
+            Explanation:
+            ${data.explanation.join("\n")}
+
+            Detected Labels:
+            ${data.detected_labels.map(l => `${l.label} (${(l.confidence * 100).toFixed(1)}%)`).join("\n")}
+            `;
         });
     </script>
 </body>

@@ -21,12 +21,16 @@ def run_vision_model(image_bytes: bytes):
     print("🔥 run_vision_model CALLED")
 
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-
+    
     results = classifier(image)
 
-    # Extract top labels only
-    labels = [r["label"].lower() for r in results[:5]]
-
-    logging.info(f"Vision labels: {labels}")
+    labels = [
+        {
+            "label": r["label"].lower(),
+            "confidence": float(r["score"])
+        }
+        for r in results[:5]
+    ]
 
     return labels
+  

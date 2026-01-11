@@ -1,12 +1,11 @@
 def score_image(detected_labels, user_tags):
-    detected = [label.lower() for label in detected_labels]
     requested = [tag.lower() for tag in user_tags]
 
     matched = []
     missing = []
 
     for tag in requested:
-        if any(tag in label for label in detected):
+        if any(tag in item["label"] for item in detected_labels):
             matched.append(tag)
         else:
             missing.append(tag)
@@ -19,5 +18,5 @@ def score_image(detected_labels, user_tags):
         "score": score,
         "matched_tags": matched,
         "missing_tags": missing,
-        "detected_labels": detected
+        "detected_labels": detected_labels
     }

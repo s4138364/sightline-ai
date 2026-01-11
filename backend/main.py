@@ -33,8 +33,20 @@ async def analyze_image(
 
     result = score_image(detected_labels, user_tags)
 
+    explanation = []
+
+    for tag in result["matched_tags"]:
+        explanation.append(f"The image appears to contain '{tag}'.")
+
+    for tag in result["missing_tags"]:
+        explanation.append(f"The model did not detect '{tag}'.")
+
+
     logging.info(f"Tags: {user_tags}")
     logging.info(f"Detected: {detected_labels}")
     logging.info(f"Score result: {result}")
 
-    return result
+    return {
+        **result,
+        "explanation": explanation
+    }
