@@ -1,3 +1,5 @@
+import time
+
 print("🔥 vision_inference.py loaded")
 
 import logging
@@ -13,6 +15,8 @@ classifier = pipeline(
     model="google/vit-base-patch16-224"
 )
 
+print("✅ Vision model initialized")
+
 def run_vision_model(image_bytes: bytes):
     """
     Runs Hugging Face image classification
@@ -20,9 +24,14 @@ def run_vision_model(image_bytes: bytes):
     """
     print("🔥 run_vision_model CALLED")
 
+    start = time.time()
+
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     
     results = classifier(image)
+
+    duration = round(time.time() - start, 3)
+    logging.info(f"Inference time: {duration}s")
 
     labels = [
         {
@@ -32,5 +41,5 @@ def run_vision_model(image_bytes: bytes):
         for r in results[:5]
     ]
 
-    return labels
+    return labels, duration
   

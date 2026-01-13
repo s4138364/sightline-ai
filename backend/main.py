@@ -1,4 +1,5 @@
 import logging
+import hashlib
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,16 +22,34 @@ app.add_middleware(
 def health():
     return {"status": "ok"}
 
+# In-memory cache
+REQUEST_CACHE = {}
+
 @app.post("/analyze")
 async def analyze_image(
     image: UploadFile = File(...),
     tags: str = Form("")
 ):
-    user_tags = [t.strip() for t in tags.split(",") if t.strip()]
+    # 1️⃣ Parse tags
+    user_tags = [t.strip().lower() for t in tags.split(",") if t.strip()]
 
+    # 2️⃣ Read image
     image_bytes = await image.read()
-    detected_labels = run_vision_model(image_bytes)
 
+    # 3️⃣ CREATE CACHE KEY (BEFORE INFERENCE)
+    cache_key = hashlib.md5(
+        image_bytes + ",".join(user_tags).encode()
+    ).hexdigest()
+
+    # 4️⃣ CHECK CACHE
+    if cache_key in REQUEST_CACHE:
+        logging.info("Returning cached result")
+        return REQUEST_CACHE[cache_key]
+
+    # 5️⃣ RUN INFERENCE (EXPENSIVE)
+    detected_labels, inference_time = run_vision_model(image_bytes)
+
+    # 6️⃣ SCORE RESULT
     result = score_image(detected_labels, user_tags)
 
     explanation = []
@@ -41,12 +60,17 @@ async def analyze_image(
     for tag in result["missing_tags"]:
         explanation.append(f"The model did not detect '{tag}'.")
 
-
     logging.info(f"Tags: {user_tags}")
     logging.info(f"Detected: {detected_labels}")
     logging.info(f"Score result: {result}")
 
-    return {
+    response = {
         **result,
+        "inference_time_seconds": inference_time,
         "explanation": explanation
     }
+
+    # 7️⃣ SAVE TO CACHE
+    REQUEST_CACHE[cache_key] = response
+
+    return response
