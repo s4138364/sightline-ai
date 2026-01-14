@@ -1,55 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Sightline AI</title>
+  <meta charset="UTF-8" />
+  <title>Sightline AI</title>
 </head>
 <body>
-    <h1>Sightline AI</h1>
+  <h1>Sightline AI</h1>
 
-    <input id="imageInput" type="file" />
-    <br><br>
+  <input type="file" id="imageInput" />
+  <br /><br />
+  <input type="text" id="tagsInput" placeholder="comma separated tags" />
+  <br /><br />
+  <button id="analyzeBtn">Analyze</button>
 
-    <input id="userInput" type="text" placeholder="cat, dog, car" />
-    <br><br>
+  <pre id="output"></pre>
 
-    <button id="sendBtn">Analyze</button>
+  <script>
+    const btn = document.getElementById("analyzeBtn");
+    const output = document.getElementById("output");
 
-    <pre id="output">Waiting for input...</pre>
+    btn.addEventListener("click", async () => {
+      const imageInput = document.getElementById("imageInput");
+      const tagsInput = document.getElementById("tagsInput");
 
-    <script>
-        const button = document.getElementById("sendBtn");
-        const output = document.getElementById("output");
+      if (!imageInput.files.length) {
+        alert("Please select an image");
+        return;
+      }
 
-        button.addEventListener("click", async () => {
-            const tags = document.getElementById("userInput").value;
-            const imageInput = document.getElementById("imageInput");
+      const formData = new FormData();
+      formData.append("image", imageInput.files[0]);
+      formData.append("tags", tagsInput.value);
 
-            if (!imageInput.files.length) {
-                alert("Please select an image");
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append("image", imageInput.files[0]);
-            formData.append("tags", tags);
-
-            const response = await fetch("http://127.0.0.1:8000/analyze", {
-                method: "POST",
-                body: formData
-            });
-
-            const data = await response.json();
-
-            output.textContent = `
-            Score: ${data.score}
-
-            Explanation:
-            ${data.explanation.join("\n")}
-
-            Detected Labels:
-            ${data.detected_labels.map(l => `${l.label} (${(l.confidence * 100).toFixed(1)}%)`).join("\n")}
-            `;
+      try {
+        const response = await fetch("http://127.0.0.1:8000/analyze", {
+          method: "POST",
+          body: formData
         });
-    </script>
+
+        const data = await response.json();
+        output.textContent = JSON.stringify(data, null, 2);
+
+      } catch (err) {
+        output.textContent = "Request failed";
+        console.error(err);
+      }
+    });
+  </script>
 </body>
 </html>
