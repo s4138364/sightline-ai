@@ -1,0 +1,110 @@
+By the end of Day 20, you are learning and practicing:
+
+Neural network fundamentals (production-level understanding)
+Vision Transformers (ViT) architecture
+Model confidence & probability distributions
+Why AI predictions behave “strangely” but correctly
+How inference differs from training
+Explaining AI decisions to non-technical stakeholders
+These are core ML engineer / applied AI engineer skills.
+
+🧠 Topics Covered Today
+What a neural network actually is (beyond buzzwords)
+What model inference means
+How Vision Transformers “see” images
+Why "animal" didn’t match "cat"
+Why confidence thresholds matter
+Why your AI is real (and not rule-based)
+
+1️⃣ What “Neural Network” Means in Your Project
+You are using this model:
+google/vit-base-patch16-224
+
+This is a Vision Transformer, which is a deep neural network.
+
+Key facts:
+~86 million parameters (weights)
+Trained on ImageNet (14M+ images)
+Learns patterns, not rules
+Outputs probability distributions, not answers
+Your app is doing real neural inference, not keyword matching.
+
+2️⃣ What “Before Running Inference” Means (Your Earlier Question)
+Inference = using a trained neural network to make predictions
+Training = teaching the network by adjusting weights
+
+In your app:
+classifier = pipeline(
+    "image-classification",
+    model="google/vit-base-patch16-224"
+)
+
+⬆️ This happens once at startup
+Then later:
+results = classifier(image)
+
+
+⬆️ This is running inference
+So:
+“Before running inference” means any logic that happens after the request is received but before calling the model on the image.
+Examples:
+Input validation
+Hashing / caching
+Logging
+Performance timing
+Rate limiting
+
+3️⃣ How the Vision Transformer Actually “Sees” an Image
+This is critical knowledge.
+
+Step-by-step (simplified):
+Image is split into 16×16 pixel patches
+Each patch → a vector (numbers)
+Vectors go through attention layers
+The network asks:
+“Which patches relate to which?”
+
+Final layer outputs probabilities like:
+
+{
+  "egyptian cat": 0.55,
+  "tabby cat": 0.27,
+  "tiger cat": 0.08,
+  ...
+}
+
+⚠️ Important:
+The model does NOT know concepts
+It only knows statistical patterns
+
+4️⃣ Why "animal" Did NOT Match "cat" (This Is Correct Behavior)
+This is not a bug.
+Your model predicts labels, not ontologies.
+It knows:
+"egyptian cat" → common visual pattern
+
+It does not know:
+cat ⊂ animal
+
+Because:
+No symbolic reasoning
+No taxonomy
+No language hierarchy
+That’s why:
+"missing_tags": ["animal"]
+
+✔️ This proves you are using pure perception AI, not rules.
+
+5️⃣ Why Confidence Thresholds Exist
+You introduced:
+"confidence_threshold": 0.25
+
+This protects you from:
+
+Noise
+Over-matching
+False positives
+Without it, your AI would:
+Claim everything is present
+Become useless in production
+This is industry-standard ML filtering.
