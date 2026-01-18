@@ -41,8 +41,15 @@ async def analyze_image(
         logging.info("Cache hit")
         return REQUEST_CACHE[cache_key]
 
-    detected_labels, inference_time = run_vision_model(image_bytes)
-    result = score_image(detected_labels, user_tags)
+    raw_predictions, inference_time = run_vision_model(image_bytes)
+
+    filtered_labels = [
+        p["label"]
+        for p in raw_predictions
+        if p["confidence"] >= 0.25
+    ]
+
+    result = score_image(filtered_labels, user_tags)
 
     explanation = []
 
@@ -53,12 +60,14 @@ async def analyze_image(
         explanation.append(f"The model did not detect '{tag}'.")
 
     logging.info(f"Tags: {user_tags}")
-    logging.info(f"Detected: {detected_labels}")
+    logging.info(f"Detected: {filtered_labels}")
     logging.info(f"Score result: {result}")
 
     response = {
         **result,
         "inference_time_seconds": inference_time,
+        "confidence_threshold": 0.25,
+        "raw_predictions": raw_predictions,
         "explanation": explanation
     }
 
