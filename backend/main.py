@@ -2,6 +2,7 @@ import logging
 import hashlib
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from utils.semantic_scoring import semantic_score_image
 
 from services.vision_inference import run_vision_model
 from utils.scoring import score_image
@@ -49,7 +50,13 @@ async def analyze_image(
         if p["confidence"] >= 0.25
     ]
 
-    result = score_image(filtered_labels, user_tags)
+    semantic_result = semantic_score_image(image_bytes, user_tags)
+
+    result = {
+        **semantic_result,
+        "filtered_labels": filtered_labels
+    }
+
 
     explanation = []
 
