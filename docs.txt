@@ -108,3 +108,106 @@ Without it, your AI would:
 Claim everything is present
 Become useless in production
 This is industry-standard ML filtering.
+
+DAY 21
+
+Right now your logic is:
+if tag in detected_label
+
+This is string matching, not intelligence.
+That’s why:
+"cat" matches "egyptian cat"
+"animal" does NOT
+
+This is expected — and every real AI system outgrows this phase.
+
+2️⃣ What Embeddings Are (Plain English)
+
+An embedding is a list of numbers that represents meaning.
+
+Example (conceptually):
+
+cat     → [0.12, 0.88, -0.31, ...]
+animal  → [0.10, 0.84, -0.29, ...]
+dog     → [0.11, 0.86, -0.35, ...]
+
+The distance between vectors = similarity of meaning
+So:
+
+cat ↔ animal → very close
+
+cat ↔ car → very far
+
+This is how Google Search, ChatGPT, and recommendation systems work.
+
+3️⃣ Why CLIP Is the Right Model (Industry Choice)
+
+CLIP = Contrastive Language–Image Pretraining
+It learns:
+Images and text in the same vector space
+
+Meaning:
+An image of a cat
+The word “animal”
+
+→ can be compared mathematically
+
+This is exactly what your app needs.
+
+4️⃣ What We Are Changing (Conceptually)
+Before (Day 20)
+image → labels → string match → score
+
+After (Day 21)
+image → embedding
+tags → embeddings
+→ cosine similarity → semantic score
+
+This is a professional AI architecture.
+
+5️⃣ Where This Logic Will Live (Very Important)
+
+We are NOT deleting anything.
+We are adding a new scoring path.
+
+📁 backend/utils/
+
+semantic_scoring.py ← NEW FILE (tomorrow we’ll implement)
+
+📁 backend/main.py
+
+Will choose between:
+label scoring
+semantic scoring
+
+This is how real systems evolve safely.
+
+6️⃣ Why We Are NOT Coding Today (On Purpose)
+
+Today is architecture + understanding day.
+If we rushed code:
+You’d paste things without understanding
+Debugging would be harder
+Interviews would expose shallow knowledge
+
+Tomorrow (Day 22):
+You will implement CLIP embeddings cleanly
+With logging
+With thresholds
+With explainability
+This pacing is intentional and professional.
+
+7️⃣ How This Solves Your “Score Feels Weird” Issue
+
+With embeddings:
+"animal" WILL partially match cat images
+"dog" will score lower
+"vehicle" will score near zero
+
+Instead of binary matches, you get graded intelligence.
+This is the moment your app becomes actually impressive.
+
+🧾 End-of-Day Interview Summary (Say This)
+“I identified the limitations of label-based scoring and redesigned the system using semantic embeddings. 
+I understand how CLIP aligns vision and language in a shared vector space and 
+how cosine similarity enables zero-shot reasoning between images and abstract concepts.”
