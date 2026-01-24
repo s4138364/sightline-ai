@@ -55,6 +55,25 @@ async def analyze_image(
         raw_predictions=raw_predictions
     )
 
+    confidence_explanations = []
+
+    for tag in result["matched_tags"]:
+        conf = result["similarities"].get(tag, 0)
+
+        if conf >= 0.5:
+            confidence_explanations.append(
+                f"High confidence match for '{tag}'."
+            )
+        elif conf >= result["confidence_threshold"]:
+            confidence_explanations.append(
+                f"Moderate confidence match for '{tag}'."
+            )
+        else:
+            confidence_explanations.append(
+                f"Low confidence match for '{tag}'."
+            )
+
+
     # -------------------------
     # 5. Build explanation
     # -------------------------
@@ -82,5 +101,6 @@ async def analyze_image(
         "raw_predictions": raw_predictions,
         "detected_labels": expanded_labels,
         "inference_time_seconds": inference_time,
-        "explanation": explanation
+        "explanation": explanation,
+        "confidence_explanation": confidence_explanations
     }

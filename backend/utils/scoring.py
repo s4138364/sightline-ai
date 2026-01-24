@@ -30,6 +30,16 @@ def score_image(
             missing.append(tag)
             similarities[tag] = 0.0
 
+    confidence_levels = {}
+
+    for label, conf in confidence_map.items():
+        if conf >= 0.5:
+            confidence_levels[label] = "high"
+        elif conf >= confidence_threshold:
+            confidence_levels[label] = "medium"
+        else:
+            confidence_levels[label] = "low"
+
     score = int((len(matched) / max(len(user_tags), 1)) * 100)
 
     return {
@@ -37,5 +47,6 @@ def score_image(
         "matched_tags": matched,
         "missing_tags": missing,
         "similarities": similarities,
+        "confidence_levels": confidence_levels,
         "confidence_threshold": confidence_threshold
     }
