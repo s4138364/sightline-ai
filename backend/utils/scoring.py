@@ -1,15 +1,47 @@
+# ------------------------
+# Tag configuration
+# ------------------------
+
+TAG_CATEGORIES = {
+    "animal": "generic",
+    "cat": "specific_animal",
+    "dog": "specific_animal",
+    "horse": "specific_animal",
+    "bird": "specific_animal",
+
+    "yellow": "color",
+    "red": "color",
+    "blue": "color",
+
+    "car": "object",
+    "tree": "object"
+}
+
+CATEGORY_THRESHOLDS = {
+    "generic": 0.45,
+    "color": 0.50,
+    "object": 0.55,
+    "specific_animal": 0.65
+}
+
 ANIMAL_CLASSES = {
     "dog", "cat", "horse", "cow", "sheep", "bird", "fish"
 }
 
-STRONG_MATCH = 0.55
-WEAK_MATCH = 0.40
+
+# ------------------------
+# Scoring logic
+# ------------------------
+
+def threshold_for_tag(tag: str) -> float:
+    category = TAG_CATEGORIES.get(tag, "object")
+    return CATEGORY_THRESHOLDS.get(category, 0.55)
 
 
-def confidence_band(score: float) -> str:
-    if score >= STRONG_MATCH:
+def confidence_band(score: float, threshold: float) -> str:
+    if score >= threshold:
         return "strong"
-    if score >= WEAK_MATCH:
+    if score >= threshold - 0.1:
         return "weak"
     return "none"
 
@@ -20,14 +52,14 @@ def score_image(
     semantic_similarities
 ):
     results = []
-
     detected_text = " ".join(detected_labels)
 
     for tag in user_tags:
         similarity = semantic_similarities.get(tag, 0)
-        band = confidence_band(similarity)
+        threshold = threshold_for_tag(tag)
+        band = confidence_band(similarity, threshold)
 
-        # Block mutually exclusive animals
+        # Prevent conflicting animals
         if tag in ANIMAL_CLASSES:
             for animal in ANIMAL_CLASSES:
                 if animal != tag and animal in detected_text:
@@ -38,10 +70,12 @@ def score_image(
         results.append({
             "tag": tag,
             "similarity": round(similarity, 3),
-            "confidence": band
+            "confidence": band,
+            "threshold": threshold,
+            "category": TAG_CATEGORIES.get(tag, "object")
         })
 
-    # Rank tags by similarity
+    # Rank by similarity
     results.sort(key=lambda x: x["similarity"], reverse=True)
 
     matched = [r["tag"] for r in results if r["confidence"] == "strong"]
@@ -54,8 +88,5 @@ def score_image(
         "matched_tags": matched,
         "missing_tags": missing,
         "ranked_results": results,
-        "thresholds": {
-            "strong": STRONG_MATCH,
-            "weak": WEAK_MATCH
-        }
+        "category_thresholds": CATEGORY_THRESHOLDS
     }
