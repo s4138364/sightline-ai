@@ -1,5 +1,7 @@
+from utils.feedback import load_thresholds
+
 # ------------------------
-# Tag configuration
+# Tag categories
 # ------------------------
 
 TAG_CATEGORIES = {
@@ -7,21 +9,12 @@ TAG_CATEGORIES = {
     "cat": "specific_animal",
     "dog": "specific_animal",
     "horse": "specific_animal",
-    "bird": "specific_animal",
 
     "yellow": "color",
     "red": "color",
-    "blue": "color",
 
     "car": "object",
     "tree": "object"
-}
-
-CATEGORY_THRESHOLDS = {
-    "generic": 0.45,
-    "color": 0.50,
-    "object": 0.55,
-    "specific_animal": 0.65
 }
 
 ANIMAL_CLASSES = {
@@ -30,12 +23,13 @@ ANIMAL_CLASSES = {
 
 
 # ------------------------
-# Scoring logic
+# Threshold logic
 # ------------------------
 
 def threshold_for_tag(tag: str) -> float:
+    thresholds = load_thresholds()
     category = TAG_CATEGORIES.get(tag, "object")
-    return CATEGORY_THRESHOLDS.get(category, 0.55)
+    return thresholds.get(category, 0.55)
 
 
 def confidence_band(score: float, threshold: float) -> str:
@@ -45,6 +39,10 @@ def confidence_band(score: float, threshold: float) -> str:
         return "weak"
     return "none"
 
+
+# ------------------------
+# Main scoring
+# ------------------------
 
 def score_image(
     detected_labels,
@@ -59,7 +57,7 @@ def score_image(
         threshold = threshold_for_tag(tag)
         band = confidence_band(similarity, threshold)
 
-        # Prevent conflicting animals
+        # Mutually exclusive animals
         if tag in ANIMAL_CLASSES:
             for animal in ANIMAL_CLASSES:
                 if animal != tag and animal in detected_text:
@@ -75,7 +73,6 @@ def score_image(
             "category": TAG_CATEGORIES.get(tag, "object")
         })
 
-    # Rank by similarity
     results.sort(key=lambda x: x["similarity"], reverse=True)
 
     matched = [r["tag"] for r in results if r["confidence"] == "strong"]
@@ -88,5 +85,5 @@ def score_image(
         "matched_tags": matched,
         "missing_tags": missing,
         "ranked_results": results,
-        "category_thresholds": CATEGORY_THRESHOLDS
+        "active_thresholds": load_thresholds()
     }
