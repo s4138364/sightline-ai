@@ -1,51 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Sightline AI</title>
-</head>
+<html>
 <body>
-  <h1>Sightline AI</h1>
 
-  <input type="file" id="imageInput" />
-  <br /><br />
-  <input type="text" id="tagsInput" placeholder="comma separated tags" />
-  <br /><br />
-  <button id="analyzeBtn">Analyze</button>
+<input type="file" id="image" />
+<input type="text" id="tags" placeholder="comma,separated,tags" />
+<button onclick="send()">Analyze</button>
 
-  <pre id="output"></pre>
+<pre id="out"></pre>
 
-  <script>
-    const btn = document.getElementById("analyzeBtn");
-    const output = document.getElementById("output");
+<script>
+async function send() {
+    const file = document.getElementById("image").files[0];
+    const tags = document.getElementById("tags").value.split(",");
 
-    btn.addEventListener("click", async () => {
-      const imageInput = document.getElementById("imageInput");
-      const tagsInput = document.getElementById("tagsInput");
+    const form = new FormData();
+    form.append("image", file);
+    tags.forEach(t => form.append("tags", t.trim()));
 
-      if (!imageInput.files.length) {
-        alert("Please select an image");
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("image", imageInput.files[0]);
-      formData.append("tags", tagsInput.value);
-
-      try {
-        const response = await fetch("http://127.0.0.1:8000/analyze", {
-          method: "POST",
-          body: formData
-        });
-
-        const data = await response.json();
-        output.textContent = JSON.stringify(data, null, 2);
-
-      } catch (err) {
-        output.textContent = "Request failed";
-        console.error(err);
-      }
+    const res = await fetch("http://127.0.0.1:8000/analyze", {
+        method: "POST",
+        body: form
     });
-  </script>
+
+    const data = await res.json();
+    document.getElementById("out").textContent =
+        JSON.stringify(data, null, 2);
+}
+</script>
+
 </body>
 </html>

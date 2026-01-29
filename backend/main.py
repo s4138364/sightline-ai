@@ -1,66 +1,51 @@
-import logging
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from typing import List
+import time
 
-from services.vision_inference import run_vision_model
-from utils.semantic import compute_similarity
+from utils.ontology import normalize_label, expand_concepts
 from utils.scoring import score_image
-
-logging.basicConfig(level=logging.INFO)
+from utils.vision import run_vision_model
 
 app = FastAPI()
 
+# ✅ CORS FIX (THIS IS CRITICAL)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # fine for local dev
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
-
 @app.post("/analyze")
 async def analyze_image(
     image: UploadFile = File(...),
-    tags: str = Form("")
+    tags: List[str] = Form(...)
 ):
-    user_tags = [t.strip().lower() for t in tags.split(",") if t.strip()]
+    start = time.time()
 
     image_bytes = await image.read()
 
-    detected_labels, raw_predictions, inference_time = run_vision_model(image_bytes)
+    # Vision model
+    raw_predictions, inference_time = run_vision_model(image_bytes)
 
-    semantic_similarities = compute_similarity(
-        detected_labels,
-        user_tags
-    )
+    # Normalize labels
+    detected_labels = [
+        normalize_label(p["label"])
+        for p in raw_predictions
+    ]
+
+    # Expand ontology (cat → animal)
+    expanded_labels = expand_concepts(detected_labels)
 
     result = score_image(
-        detected_labels=detected_labels,
-        user_tags=user_tags,
-        semantic_similarities=semantic_similarities
+        detected_labels=expanded_labels,
+        user_tags=[t.lower().strip() for t in tags]
     )
 
-    explanation = []
+    result["raw_predictions"] = raw_predictions
+    result["inference_time_seconds"] = round(inference_time, 3)
+    result["semantic_inference_time_seconds"] = round(time.time() - start, 3)
 
-    for tag in result["matched_tags"]:
-        explanation.append(f"'{tag}' matches image content semantically.")
-
-    for tag in result["missing_tags"]:
-        explanation.append(f"'{tag}' does not semantically match the image.")
-
-    response = {
-        **result,
-        "detected_labels": detected_labels,
-        "raw_predictions": raw_predictions,
-        "inference_time_seconds": inference_time,
-        "explanation": explanation
-    }
-
-    logging.info(response)
-
-    return response
+    return result

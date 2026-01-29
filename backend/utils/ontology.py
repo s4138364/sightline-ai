@@ -1,47 +1,19 @@
-# backend/utils/ontology.py
-
 # Simple ontology graph
 ONTOLOGY = {
-    "cat": {"animal", "mammal"},
-    "dog": {"animal", "mammal"},
-    "bird": {"animal"},
-    "car": {"vehicle"},
-    "truck": {"vehicle"},
+    "cat": ["animal"],
+    "dog": ["animal"],
+    "animal": [],
 }
 
 def normalize_label(label: str) -> str:
-    """
-    Reduce model labels like:
-    'egyptian cat' -> 'cat'
-    'tabby, tabby cat' -> 'cat'
-    """
-    label = label.lower()
+    return label.lower().strip()
 
-    if "cat" in label:
-        return "cat"
-    if "dog" in label:
-        return "dog"
-    if "bird" in label:
-        return "bird"
-    if "car" in label:
-        return "car"
-    if "truck" in label:
-        return "truck"
+def expand_concepts(labels):
+    expanded = set(labels)
 
-    return label
-
-
-def expand_concepts(detected_labels: list[str]) -> list[str]:
-    """
-    Expand detected labels using ontology
-    """
-    expanded = set()
-
-    for label in detected_labels:
-        base = normalize_label(label)
-        expanded.add(base)
-
-        if base in ONTOLOGY:
-            expanded.update(ONTOLOGY[base])
+    for lbl in labels:
+        parents = ONTOLOGY.get(lbl, [])
+        for p in parents:
+            expanded.add(p)
 
     return list(expanded)
