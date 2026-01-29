@@ -1,29 +1,39 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Sightline AI – Day 30</title>
+</head>
 <body>
 
-<input type="file" id="image" />
-<input type="text" id="tags" placeholder="comma,separated,tags" />
-<button onclick="send()">Analyze</button>
+<h2>Image Tag Matcher</h2>
 
-<pre id="out"></pre>
+<input type="file" id="imageInput" />
+<br><br>
+
+<input type="text" id="tagsInput" placeholder="cat, animal, dog" />
+<br><br>
+
+<button onclick="analyze()">Analyze</button>
+
+<pre id="output"></pre>
 
 <script>
-async function send() {
-    const file = document.getElementById("image").files[0];
-    const tags = document.getElementById("tags").value.split(",");
+async function analyze() {
+    const image = document.getElementById("imageInput").files[0];
+    const tags = document.getElementById("tagsInput").value;
 
-    const form = new FormData();
-    form.append("image", file);
-    tags.forEach(t => form.append("tags", t.trim()));
+    const formData = new FormData();
+    formData.append("image", image);
+    formData.append("tags", tags);
 
-    const res = await fetch("http://127.0.0.1:8000/analyze", {
+    const response = await fetch("http://127.0.0.1:8000/analyze", {
         method: "POST",
-        body: form
+        body: formData
     });
 
-    const data = await res.json();
-    document.getElementById("out").textContent =
+    const data = await response.json();
+    document.getElementById("output").textContent =
         JSON.stringify(data, null, 2);
 }
 </script>

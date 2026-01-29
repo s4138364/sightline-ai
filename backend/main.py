@@ -1,19 +1,15 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
-import time
 
-from utils.ontology import normalize_label, expand_concepts
-from utils.scoring import score_image
-from utils.vision import run_vision_model
+from utils.vision import detect_labels
+from utils.ontology import expand_concepts
 
 app = FastAPI()
 
-# ✅ CORS FIX (THIS IS CRITICAL)
+# ✅ Allow opening index.html directly (file://)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # fine for local dev
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -21,31 +17,28 @@ app.add_middleware(
 @app.post("/analyze")
 async def analyze_image(
     image: UploadFile = File(...),
-    tags: List[str] = Form(...)
+    tags: str = Form(...)
 ):
-    start = time.time()
+    # User tags
+    user_tags = [t.strip().lower() for t in tags.split(",") if t.strip()]
 
-    image_bytes = await image.read()
+    # Vision
+    detected_labels = detect_labels(await image.read())
+    detected_labels = [l.lower() for l in detected_labels]
 
-    # Vision model
-    raw_predictions, inference_time = run_vision_model(image_bytes)
+    # Ontology expansion
+    expanded = expand_concepts(detected_labels)
 
-    # Normalize labels
-    detected_labels = [
-        normalize_label(p["label"])
-        for p in raw_predictions
-    ]
+    # Matching
+    matches = []
+    for tag in user_tags:
+        matches.append({
+            "tag": tag,
+            "matched": tag in expanded
+        })
 
-    # Expand ontology (cat → animal)
-    expanded_labels = expand_concepts(detected_labels)
-
-    result = score_image(
-        detected_labels=expanded_labels,
-        user_tags=[t.lower().strip() for t in tags]
-    )
-
-    result["raw_predictions"] = raw_predictions
-    result["inference_time_seconds"] = round(inference_time, 3)
-    result["semantic_inference_time_seconds"] = round(time.time() - start, 3)
-
-    return result
+    return {
+        "detected_labels": detected_labels,
+        "expanded_concepts": sorted(list(expanded)),
+        "matches": matches
+    }

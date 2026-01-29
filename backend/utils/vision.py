@@ -1,13 +1,17 @@
-import time
+from PIL import Image
+import io
 
-def run_vision_model(image_bytes):
-    start = time.time()
+def detect_labels(image_bytes: bytes):
+    """
+    Day 30 stub vision system.
+    Ensures pipeline works end-to-end.
+    """
 
-    # Fake predictions for testing
-    predictions = [
-        {"label": "egyptian cat", "confidence": 0.55},
-        {"label": "tabby cat", "confidence": 0.28},
-        {"label": "tiger cat", "confidence": 0.08},
+    # Validate image
+    Image.open(io.BytesIO(image_bytes))
+
+    # Mock labels (controlled + predictable)
+    return [
+        "cat",
+        "pet"
     ]
-
-    return predictions, time.time() - start

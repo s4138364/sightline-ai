@@ -1,19 +1,15 @@
-# Simple ontology graph
 ONTOLOGY = {
-    "cat": ["animal"],
-    "dog": ["animal"],
-    "animal": [],
+    "cat": ["animal", "pet"],
+    "dog": ["animal", "pet"],
+    "car": ["vehicle"],
 }
 
-def normalize_label(label: str) -> str:
-    return label.lower().strip()
-
 def expand_concepts(labels):
-    expanded = set(labels)
+    expanded = set()
 
-    for lbl in labels:
-        parents = ONTOLOGY.get(lbl, [])
-        for p in parents:
-            expanded.add(p)
+    for label in labels:
+        expanded.add(label)
+        if label in ONTOLOGY:
+            expanded.update(ONTOLOGY[label])
 
-    return list(expanded)
+    return expanded
